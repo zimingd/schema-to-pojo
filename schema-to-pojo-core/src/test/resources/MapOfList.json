@@ -1,0 +1,17 @@
+{
+	"type": "object",
+	"properties": {
+		"mapOfList": {
+			"type": "map",
+			"key": {
+				"type":"string"
+			},
+			"value":{
+				"type": "array",
+				"items":{
+					"type":"integer"
+				}
+			}
+		}
+	}
+}

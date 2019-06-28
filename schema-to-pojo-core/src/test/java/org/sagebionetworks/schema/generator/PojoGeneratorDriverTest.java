@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -606,19 +607,7 @@ public class PojoGeneratorDriverTest {
 	
 	@Test
 	public void testLoadedInterfaces() throws Exception{
-		String[] namesToLoad = new String[]{
-				"InterfaceA.json",
-				"InterfaceB.json",
-				"ABImpl.json",
-		};
-		List<ObjectSchema> schemaList = new ArrayList<ObjectSchema>();
-		for(String name: namesToLoad){
-			String fileString = FileHelper.loadFileAsStringFromClasspath(PojoGeneratorDriverTest.class.getClassLoader(), name);
-			ObjectSchema schema = new ObjectSchema(new JSONObjectAdapterImpl(fileString));
-//			schema.setName(name);
-			schema.setId(schema.getName());
-			schemaList.add(schema);
-		}
+		List<ObjectSchema> schemaList = getObjectSchemas("InterfaceA.json", "InterfaceB.json", "ABImpl.json");
 		JCodeModel codeModel = new JCodeModel();
 		driver.createAllClasses(codeModel, schemaList);
 		// Get the class
@@ -660,17 +649,7 @@ public class PojoGeneratorDriverTest {
 	
 	@Test
 	public void testLoadedInterfaceNoMembers() throws Exception{
-		String[] namesToLoad = new String[]{
-				"InterfaceA.json",
-				"AImpl.json",
-		};
-		List<ObjectSchema> schemaList = new ArrayList<ObjectSchema>();
-		for(String name: namesToLoad){
-			String fileString = FileHelper.loadFileAsStringFromClasspath(PojoGeneratorDriverTest.class.getClassLoader(), name);
-			ObjectSchema schema = new ObjectSchema(new JSONObjectAdapterImpl(fileString));
-			schema.setId(schema.getName());
-			schemaList.add(schema);
-		}
+		List<ObjectSchema> schemaList = getObjectSchemas("InterfaceA.json", "AImpl.json");
 		JCodeModel codeModel = new JCodeModel();
 		driver.createAllClasses(codeModel, schemaList);
 		// Get the class
@@ -691,16 +670,7 @@ public class PojoGeneratorDriverTest {
 	
 	@Test
 	public void testCreateAllClassesEnum() throws Exception{
-		String[] namesToLoad = new String[]{
-				"PetEnum.json",
-		};
-		List<ObjectSchema> schemaList = new ArrayList<ObjectSchema>();
-		for(String name: namesToLoad){
-			String fileString = FileHelper.loadFileAsStringFromClasspath(PojoGeneratorDriverTest.class.getClassLoader(), name);
-			ObjectSchema schema = new ObjectSchema(new JSONObjectAdapterImpl(fileString));
-			schema.setId(schema.getName());
-			schemaList.add(schema);
-		}
+		List<ObjectSchema> schemaList = getObjectSchemas("PetEnum.json");
 		JCodeModel codeModel = new JCodeModel();
 		driver.createAllClasses(codeModel, schemaList);
 		// Get the class
@@ -725,6 +695,18 @@ public class PojoGeneratorDriverTest {
 		// Enums should have no constructors
 		assertFalse(impl.constructors().hasNext());
 	}
+
+	private List<ObjectSchema> getObjectSchemas(String... namesToLoad) throws IOException, JSONObjectAdapterException {
+		List<ObjectSchema> schemaList = new ArrayList<ObjectSchema>(namesToLoad.length);
+		for (String name : namesToLoad) {
+			String fileString = FileHelper.loadFileAsStringFromClasspath(PojoGeneratorDriverTest.class.getClassLoader(), name);
+			ObjectSchema schema = new ObjectSchema(new JSONObjectAdapterImpl(fileString));
+			schema.setId(schema.getName());
+			schemaList.add(schema);
+		}
+		return schemaList;
+	}
+
 	/**
 	 * Helper to declare a model object to string.
 	 * @param toDeclare
