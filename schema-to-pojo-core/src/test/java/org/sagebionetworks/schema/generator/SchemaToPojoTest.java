@@ -113,6 +113,32 @@ public class SchemaToPojoTest {
 	}
 
 	@Test
+	public void loadMapOfListValues() throws IOException,
+			JSONObjectAdapterException, ClassNotFoundException {
+		// Load form the sample file
+		File mapOfListsSchemaFile = new File("src/test/resources/MapOfList.json");
+		assertTrue("Test file does not exist: " + mapOfListsSchemaFile.getAbsolutePath(),
+				mapOfListsSchemaFile.exists());
+		// Create the class
+		HandlerFactory factory = new HandlerFactoryImpl03();
+		// Generate the class
+		SchemaToPojo.generatePojos(mapOfListsSchemaFile, outputDir,"org.sample.Register", factory, new StringBuilder());
+		// Make sure the file exists
+		File result = new File(outputDir, "MapOfList.java");
+		System.out.println(result.getAbsolutePath());
+		assertTrue(result.exists());
+
+		// Make sure the register class exists
+		result = new File(outputDir, "org/sample/Register.java");
+		System.out.println(result.getAbsolutePath());
+		assertTrue(result.exists());
+
+		// Load the file string
+		String resultString = FileUtils.readToString(result);
+		System.out.println(resultString);
+	}
+
+	@Test
 	public void testGetPackageName() throws IOException{
 		File root = File.createTempFile("root file test", "");
 		// Delete the file

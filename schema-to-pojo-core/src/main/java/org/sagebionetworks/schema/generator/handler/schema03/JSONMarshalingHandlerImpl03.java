@@ -295,7 +295,8 @@ public class JSONMarshalingHandlerImpl03 implements JSONMarshalingHandler{
 				ifNulThenBlock.assign(value, JExpr._null());
 				// else
 				JBlock ifNullElseBlock = ifNull._else();
-				if (valueTypeClass.isInterface() || valueTypeClass.isAbstract()) {
+				//ARRAY and MAP Types in the object schema also resolve to Java Interfaces, but they are not like the schema interfaces
+				if (isMapValueTypeASchemaInterface(valueTypeSchema, valueTypeClass)) {
 					if (interfaceFactoryGenerator == null)
 						throw new IllegalArgumentException("A InterfaceFactoryGenerator is need to create interfaces or abstract classes.");
 					JDefinedClass createRegister = interfaceFactoryGenerator.getFactoryClass(valueTypeClass);
@@ -363,6 +364,11 @@ public class JSONMarshalingHandlerImpl03 implements JSONMarshalingHandler{
         // Always return the param
         body._return(param);
 		return method;
+	}
+
+	private boolean isMapValueTypeASchemaInterface(ObjectSchema valueTypeSchema, JClass valueTypeClass) {
+		return (valueTypeClass.isInterface() || valueTypeClass.isAbstract())
+				&& (valueTypeSchema.getType() != TYPE.ARRAY && valueTypeSchema.getType() != TYPE.MAP);
 	}
 
 	private JFieldVar getPropertyKeyConstantReference(JDefinedClass classType, String propName) {
@@ -551,10 +557,11 @@ public class JSONMarshalingHandlerImpl03 implements JSONMarshalingHandler{
 		}else if(TYPE.STRING == type){
 			JExpression stringExper = jsonMap.invoke(methodName).arg(jsonKey);
 			return convertStringAsNeeded(typeClass.owner(), adapter, format, stringExper);
-		}else if(TYPE.ARRAY == type){
-			throw new IllegalArgumentException("Arrays of Arrays are currently not supported");
+		}else if(TYPE.ARRAY == type){ //TODO: test
+			JExpression arrayExper = jsonMap.invoke(methodName).arg(jsonKey);
+			return arrayExper;
 		} else if (TYPE.MAP == type) {
-			throw new IllegalArgumentException("Arrays of Maps are currently not supported");
+			throw new IllegalArgumentException("Maps of Maps are currently not supported");
 		}else{
 			// Now we need to create an object of the the type
 			return JExpr._new(typeClass).arg(jsonMap.invoke("getJSONObject").arg(jsonKey));
@@ -834,7 +841,8 @@ public class JSONMarshalingHandlerImpl03 implements JSONMarshalingHandler{
 		} else if (TYPE.INTEGER == type) {
 			return assignPropertyToJSONLong(typeClass.owner(), typeSchema, value);
 		} else if (TYPE.ARRAY == type) {
-			throw new IllegalArgumentException("Maps of Arrays are currently not supported");
+			//TODO:TEST
+			return value;
 		} else if (TYPE.MAP == type) {
 			throw new IllegalArgumentException("Maps of Maps are currently not supported");
 		} else {
